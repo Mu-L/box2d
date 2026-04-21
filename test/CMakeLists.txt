@@ -13,6 +13,7 @@ set(BOX2D_TEST_FILES
     test_math.c
     test_shape.c
     test_table.c
+    test_thread.c
     test_world.c
 )
 
@@ -31,6 +32,6 @@ endif()
 # Special access to Box2D internals for testing
 target_include_directories(test PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
-target_link_libraries(test PRIVATE box2d shared enkiTS)
+target_link_libraries(test PRIVATE box2d shared)
 
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "" FILES ${BOX2D_TEST_FILES})
