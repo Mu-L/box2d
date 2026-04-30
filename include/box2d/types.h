@@ -56,6 +56,27 @@ typedef struct b2RayResult
 	bool hit;
 } b2RayResult;
 
+/// Optional world capacities that can be used to avoid run-time allocations.
+/// @see b2World_GetMaxCapacity
+/// @ingroup world
+typedef struct b2Capacity
+{
+	/// Number of expected static shapes.
+	int staticShapeCount;
+
+	/// Number of expected dynamic and kinematic shapes.
+	int dynamicShapeCount;
+
+	/// Number of expected static bodies.
+	int staticBodyCount;
+
+	/// Number of expected dynamic and kinematic bodies.
+	int dynamicBodyCount;
+
+	/// Number of expected contacts.
+	int contactCount;
+} b2Capacity;
+
 /// World definition used to create a simulation world.
 /// Must be initialized using b2DefaultWorldDef().
 /// @ingroup world
@@ -121,6 +142,9 @@ typedef struct b2WorldDef
 
 	/// User data
 	void* userData;
+
+	/// Optional initial capacities
+	b2Capacity capacity;
 
 	/// Used internally to detect a valid definition. DO NOT SET.
 	int internalValue;
@@ -485,8 +509,8 @@ typedef struct b2Profile
 	float pairs;
 	float collide;
 	float solve;
-	float prepareStages;
-	float solveConstraints;
+	float solverSetup;
+	float constraints;
 	float prepareConstraints;
 	float integrateVelocities;
 	float warmStart;
@@ -520,6 +544,12 @@ typedef struct b2Counters
 	int byteCount;
 	int taskCount;
 	int colorCounts[24];
+
+	// Number of contacts touched by the collide pass (graph contacts + awake-set non-touching).
+	int awakeContactCount;
+
+	// Number of contacts recycled in the most recent step.
+	int recycledContactCount;
 } b2Counters;
 //! @endcond
 
@@ -1319,6 +1349,10 @@ typedef enum b2HexColor
 	b2_colorBox2DGreen = 0x8CC924,
 	b2_colorBox2DYellow = 0xFFEE8C
 } b2HexColor;
+
+/// Get the visualization color assigned to a constraint graph color slot. The last index
+/// (B2_GRAPH_COLOR_COUNT - 1) is the overflow color.
+B2_API b2HexColor b2GetGraphColor( int index );
 
 /// The type of contact point drawing
 typedef enum b2ContactDrawType

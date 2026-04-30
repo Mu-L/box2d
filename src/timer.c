@@ -4,7 +4,7 @@
 // Required on Linux to expose pthread_setname_np. Must be defined before any
 // system header is included.
 #if defined( __linux__ ) && !defined( _GNU_SOURCE )
-	#define _GNU_SOURCE
+#define _GNU_SOURCE
 #endif
 
 #include "core.h"
@@ -13,7 +13,6 @@
 
 #include <stddef.h>
 #include <stdio.h>
-#include <string.h>
 
 #if defined( _MSC_VER )
 
@@ -188,6 +187,7 @@ static DWORD WINAPI b2ThreadStart( LPVOID param )
 {
 	b2Thread* t = (b2Thread*)param;
 	b2SetCurrentThreadName( t->name );
+	b2TracyCSetThreadName( t->name );
 	t->function( t->context );
 	return 0;
 }
@@ -338,6 +338,7 @@ static void* b2ThreadStart( void* param )
 {
 	b2Thread* t = (b2Thread*)param;
 	b2SetCurrentThreadName( t->name );
+	b2TracyCSetThreadName( t->name );
 	t->function( t->context );
 	return NULL;
 }
@@ -507,6 +508,7 @@ static void* b2ThreadStart( void* param )
 {
 	b2Thread* t = (b2Thread*)param;
 	b2SetCurrentThreadName( t->name );
+	b2TracyCSetThreadName( t->name );
 	t->function( t->context );
 	return NULL;
 }

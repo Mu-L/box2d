@@ -9,6 +9,7 @@
 #include "utils.h"
 
 #include "box2d/box2d.h"
+#include "box2d/constants.h"
 #include "box2d/math_functions.h"
 
 #include <assert.h>
@@ -23,7 +24,6 @@
 
 #define ARRAY_COUNT( A ) (int)( sizeof( A ) / sizeof( A[0] ) )
 #define MAYBE_UNUSED( x ) ( (void)( x ) )
-#define THREAD_LIMIT 64
 
 typedef void CreateFcn( b2WorldId worldId );
 typedef float StepFcn( b2WorldId worldId, int stepCount );
@@ -41,7 +41,7 @@ static void MinProfile( b2Profile* p1, const b2Profile* p2 )
 	p1->step = b2MinFloat( p1->step, p2->step );
 	p1->pairs = b2MinFloat( p1->pairs, p2->pairs );
 	p1->collide = b2MinFloat( p1->collide, p2->collide );
-	p1->solveConstraints = b2MinFloat( p1->solveConstraints, p2->solveConstraints );
+	p1->constraints = b2MinFloat( p1->constraints, p2->constraints );
 	p1->transforms = b2MinFloat( p1->transforms, p2->transforms );
 	p1->refit = b2MinFloat( p1->refit, p2->refit );
 	p1->sleepIslands = b2MinFloat( p1->sleepIslands, p2->sleepIslands );
@@ -72,6 +72,7 @@ int main( int argc, char** argv )
 #endif
 
 	Benchmark benchmarks[] = {
+		{ "compounds", CreateCompounds, NULL, 500 },
 		{ "joint_grid", CreateJointGrid, NULL, 500 },
 		{ "junkyard", CreateJunkyard, StepJunkyard, 800 },
 		{ "large_pyramid", CreateLargePyramid, NULL, 500 },
@@ -96,8 +97,8 @@ int main( int argc, char** argv )
 		.pairs = FLT_MAX,
 		.collide = FLT_MAX,
 		.solve = FLT_MAX,
-		.prepareStages = FLT_MAX,
-		.solveConstraints = FLT_MAX,
+		.solverSetup = FLT_MAX,
+		.constraints = FLT_MAX,
 		.prepareConstraints = FLT_MAX,
 		.integrateVelocities = FLT_MAX,
 		.warmStart = FLT_MAX,
@@ -123,7 +124,7 @@ int main( int argc, char** argv )
 	float* stepResults = malloc( maxSteps * sizeof( float ) );
 	memset( stepResults, 0, maxSteps * sizeof( float ) );
 
-	int maxThreadCount = b2MinInt(GetNumberOfCores(), THREAD_LIMIT);
+	int maxThreadCount = b2MinInt(GetNumberOfCores(), B2_MAX_WORKERS);
 	int runCount = 4;
 	int singleBenchmark = -1;
 	int singleWorkerCount = -1;
@@ -200,7 +201,7 @@ int main( int argc, char** argv )
 
 		printf( "benchmark: %s, steps = %d\n", benchmarks[benchmarkIndex].name, stepCount );
 
-		float minTime[THREAD_LIMIT] = { 0 };
+		float minTime[B2_MAX_WORKERS] = { 0 };
 
 		for ( int threadCount = 1; threadCount <= maxThreadCount; ++threadCount )
 		{
@@ -284,7 +285,7 @@ int main( int argc, char** argv )
 				for ( int stepIndex = 0; stepIndex < stepCount; ++stepIndex )
 				{
 					b2Profile p = profiles[stepIndex];
-					fprintf( file, "%g %g %g %g %g %g %g\n", p.step, p.pairs, p.collide, p.solveConstraints, p.transforms,
+					fprintf( file, "%g %g %g %g %g %g %g\n", p.step, p.pairs, p.collide, p.constraints, p.transforms,
 							 p.refit, p.sleepIslands );
 				}
 
@@ -292,8 +293,14 @@ int main( int argc, char** argv )
 			}
 		}
 
-		printf( "body %d / shape %d / contact %d / joint %d / stack %d\n\n", counters.bodyCount, counters.shapeCount,
+		printf( "body %d / shape %d / contact %d / joint %d / stack %d\n", counters.bodyCount, counters.shapeCount,
 				counters.contactCount, counters.jointCount, counters.stackUsed );
+		printf( "color counts:" );
+		for ( int c = 0; c < ARRAY_COUNT( counters.colorCounts ); ++c )
+		{
+			printf( " %d", counters.colorCounts[c] );
+		}
+		printf( "\n\n" );
 
 		char fileName[64] = { 0 };
 		snprintf( fileName, 64, "%s.csv", benchmarks[benchmarkIndex].name );

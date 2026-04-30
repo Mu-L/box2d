@@ -1216,7 +1216,7 @@ typedef struct
 Polygons CreatePolygons()
 {
 	Polygons render = { 0 };
-	render.polygons = PolygonArray_Create( POLYGON_BATCH_SIZE );
+	render.polygons = PolygonArray_Create( 10 * POLYGON_BATCH_SIZE );
 	render.programId = CreateProgramFromFiles( "samples/data/solid_polygon.vs", "samples/data/solid_polygon.fs" );
 	render.projectionUniform = glGetUniformLocation( render.programId, "projectionMatrix" );
 	render.pixelScaleUniform = glGetUniformLocation( render.programId, "pixelScale" );

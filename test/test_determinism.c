@@ -15,8 +15,8 @@
 #define TracyCFrameMark
 #endif
 
-#define EXPECTED_SLEEP_STEP 293
-#define EXPECTED_HASH 0x2FF98AC6
+#define EXPECTED_SLEEP_STEP 262
+#define EXPECTED_HASH 0x3841BB81
 
 static int SingleMultithreadingTest( int workerCount )
 {
@@ -28,7 +28,7 @@ static int SingleMultithreadingTest( int workerCount )
 	FallingHingeData data = CreateFallingHinges( worldId );
 
 	float timeStep = 1.0f / 60.0f;
-	int stepLimit = 1000;
+	int stepLimit = 500;
 	for ( int i = 0; i < stepLimit; ++i )
 	{
 		int subStepCount = 4;
@@ -36,7 +36,6 @@ static int SingleMultithreadingTest( int workerCount )
 		TracyCFrameMark;
 
 		bool done = UpdateFallingHinges( worldId, &data );
-
 		if ( done )
 		{
 			break;
